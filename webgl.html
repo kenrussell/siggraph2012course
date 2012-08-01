@@ -213,16 +213,103 @@ void main(void) {
   gl_FragColor = vColor;
 }
       </pre>
-      <uln>
+      <ul>
         <li>Value of vColor <b>varying variable</b> is a weighted combination of the colors specified at the three input vertices</li>
         <li>Based on the location of the pixel within the triangle, GPU automatically blends colors that were specified at each vertex</li>
+        <li>Fragment shader executes between a dozen to tens of thousands of times, depending on how many pixels the triangle covers</li>
       </ul>
     </article>
   </slide>
 
+  <slide>
+    <hgroup>
+      <h2>Embedding Shaders</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Shaders in this example are embedded in the web page using script elements</li>
+        <li>It is entirely up to the application how to manage the sources for its shaders</li>
+        <li>Script tags were chosen to hold the shaders for this example for simplicity</li>
+        <li>Real world application might download shaders using XMLHttpRequest, generate shaders in JavaScript, etc.</li>
+      </ul>
+      <pre class="prettyprint" data-lang="html">
+&lt;script id="shader-vs" type="x-shader/x-vertex"&gt;
+  attribute vec3 positionAttr;
+  attribute vec4 colorAttr;
+  ...
+&lt;/script&gt;
+&lt;script id="shader-fs" type="x-shader/x-fragment"&gt;
+  precision mediump float;
+  varying vec4 vColor;
+  ...
+&lt;/script&gt;</pre>
+    </article>
+  </slide>
 
+  <slide>
+    <hgroup>
+      <h2>Initializing WebGL</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="javascript">
+var gl = null;
+var contextNames = [ "webgl", "experimental-webgl" ];
+for (var ii = 0; ii < contextNames.length; ++ii) {
+  try {
+    gl = canvas.getContext(contextNames[ii]);
+    if (gl) break;
+  } catch (e) {}
+}
+if (!gl)
+  alert("Could not initialise WebGL, sorry :-(");</pre>
+      <ul>
+        <li>Not the best error detection logic; kept short for simplicity</li>
+        <li>Consult <a href="http://webglsamples.googlecode.com">WebGL samples</a> for better examples</li>
+        <li>Link to <a href="http://get.webgl.org/">http://get.webgl.org/</a> if initialization fails</li>
+      </ul>
+    </article>
+  </slide>
 
+  <slide>
+    <hgroup>
+      <h2>Loading a Shader</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Create the shader object – vertex or fragment</li>
+        <li>Specify its source code</li>
+        <li>Compile it</li>
+        <li>Check whether compilation succeeded</li>
+        <li>Complete code follows; some error checking elided</li>
+      </ul>
+    </article>
+  </slide>
 
+  <slide>
+    <hgroup>
+      <h2>Loading a Shader</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="javascript">
+function getShader(gl, id) {
+  var script = document.getElementById(id);
+  var shader;
+  if (script.type == "x-shader/x-vertex") {
+    shader = gl.createShader(gl.VERTEX_SHADER);
+  } else if (script.type == "x-shader/x-fragment") {
+    shader = gl.createShader(gl.FRAGMENT_SHADER);
+  }
+  gl.shaderSource(shader, script.text);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    alert(gl.getShaderInfoLog(shader));
+    return null;
+  }
+
+  return shader;
+}</pre>
+    </article>
+  </slide>
 
 
 
