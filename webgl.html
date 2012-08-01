@@ -5,11 +5,18 @@ Authors: Eric Bidelman <ebidel@gmail.com>
          Luke Mahé <lukem@google.com>
 
 URL: https://code.google.com/p/io-2012-slides
+
+Slightly modified to create SIGGRAPH 2012 slide template
+
+Author:  Kenneth Russell <kbr@google.com>
+
+URL: https://github.com/kenrussell/siggraph2012course
 -->
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Google IO 2012</title>
+  <!-- Title is populated with content in slide_config.js -->
+  <title>SIGGRAPH 2012</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="chrome=1">
   <!--<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">-->
@@ -38,6 +45,187 @@ URL: https://code.google.com/p/io-2012-slides
       <p data-config-presenter><!-- populated from slide_config.json --></p>
     </hgroup>
   </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Introduction</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>WebGL brings 3D graphics to the HTML5 platform</li>
+        <li>WebGL is an alternative rendering context for the HTML5 Canvas element</li>
+        <li>Provides the OpenGL ES 2.0 API to JavaScript</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Introduction</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>OpenGL and OpenGL ES provide a proven rendering model</li>
+        <ul>
+          <li>Differs from other graphics APIs on the web</li>
+        </ul>
+        <li>The triangle is the basic drawing primitive</li>
+        <li>Data for many triangles is prepared once, but drawn many times</li>
+        <ul>
+          <li>Vertex positions, colors, textures, ...</li>
+        </ul>
+        <li><b>Shaders</b> &mdash; small programs that execute directly on the GPU &mdash; determine position of each triangle and color of every pixel</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Programming Model</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>The GPU is a stream processor</li>
+        <li>Each point in 3D space has one or more streams of data associated with it</li>
+        <ul>
+          <li>Position, surface normal, color, texture coordinate, ...</li>
+        </ul>
+        <li>In OpenGL (and WebGL) these streams are called vertex attributes</li>
+        <li>These streams of data flow through the vertex and fragment shaders</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Shader Pipeline</h2>
+    </hgroup>
+    <article class="flexbox vcenter">
+      <img src="images/stream-processing-with-shaders.svg" height="300px" alt="Description" title="Description">
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Vertex and Fragment Shaders</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Small, stateless programs which run on the GPU with a high degree of parallelism</li>
+        <li>Vertex shader is applied to each vertex of each triangle</li>
+        <li>Its primary goal is to output the location where the vertex should appear in the on-screen window</li>
+        <li>May also output one or more additional values &mdash; <b>varying variables</b> &mdash; to the fragment shader</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Vertex and Fragment Shaders</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>For each triangle, the GPU figures out which pixels on the screen are covered by the triangle</li>
+        <li>GPU then runs the fragment shader on each of those pixels</li>
+        <li>At each pixel, GPU automatically blends outputs of the vertex shader based on where the pixel lies within the triangle</li>
+        <li>Fragment shader then determines the color of the pixel based on those inputs</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Getting Data on to the GPU</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Vertex data is uploaded in to one or more buffer objects</li>
+        <li>The vertex attributes in the vertex shader are bound to the data in these buffer objects</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Buffer Objects and Vertex Shaders</h2>
+    </hgroup>
+    <article class="flexbox vcenter">
+      <img src="images/buffer-objects-and-vertex-shaders.svg" height="450px" alt="Description" title="Description">
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>A Concrete Example</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Adapted from Giles Thomas' <a href="http://learningwebgl.com/blog/?p=134">Learning WebGL Lesson 2</a></li>
+        <li>Code is checked in to the <a href="http://code.google.com/p/webglsamples/">webglsamples project</a> under hello-webgl/</li>
+        <li>May be <a href="http://webglsamples.googlecode.com/hg/hello-webgl/hello-webgl.html">viewed directly</a> in a WebGL-enabled browser
+        <li>Goal of this example is to de-mystify WebGL by showing all of the steps necessary to draw a colored triangle on the screen</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>A Concrete Example</h2>
+    </hgroup>
+    <article>
+      <iframe data-src="http://webglsamples.googlecode.com/hg/hello-webgl/hello-webgl.html"></iframe>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Vertex Shader</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint lang-glsl" data-lang="glsl">
+attribute vec3 positionAttr;
+attribute vec4 colorAttr;
+
+varying vec4 vColor;
+
+void main(void) {
+  gl_Position = vec4(positionAttr, 1.0);
+  vColor = colorAttr;
+}
+      </pre>
+      <ul>
+        <li>In this example, the vertex shader will only execute three times (for one triangle)</li>
+        <li>In a typical application, thousands or tens of thousands of triangles are usually drawn together</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Fragment Shader</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint lang-glsl" data-lang="glsl">
+precision mediump float;
+
+varying vec4 vColor;
+void main(void) {
+  gl_FragColor = vColor;
+}
+      </pre>
+      <uln>
+        <li>Value of vColor <b>varying variable</b> is a weighted combination of the colors specified at the three input vertices</li>
+        <li>Based on the location of the pixel within the triangle, GPU automatically blends colors that were specified at each vertex</li>
+      </ul>
+    </article>
+  </slide>
+
+
+
+
+
+
+
 
   <slide>
     <hgroup>
