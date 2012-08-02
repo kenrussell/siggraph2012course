@@ -547,6 +547,8 @@ SlideDeck.prototype.updateSlides_ = function(opt_dontPush) {
         this.updateSlideClass_(i, 'far-next');
         break;
       default:
+        // Disable iframes on slides no longer nearby.
+        this.disableSlideFrames_(i + 1);
         this.updateSlideClass_(i);
         break;
     }
