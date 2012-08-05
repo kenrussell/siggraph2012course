@@ -256,13 +256,11 @@ void main(void) {
     <article>
       <pre class="prettyprint" data-lang="javascript">
 var gl = null;
-var contextNames = [ "webgl", "experimental-webgl" ];
-for (var ii = 0; ii < contextNames.length; ++ii) {
-  try {
-    gl = canvas.getContext(contextNames[ii]);
-    if (gl) break;
-  } catch (e) {}
-}
+try {
+  gl = canvas.getContext("webgl");
+  if (!gl)
+    gl = canvas.getContext("experimental-webgl");
+} catch (e) {}
 if (!gl)
   alert("Could not initialise WebGL, sorry :-(");</pre>
       <ul>
@@ -339,8 +337,8 @@ function getShader(gl, id) {
       <pre class="prettyprint" data-lang="javascript">
 var program;
 function initShaders() {
-  var fragmentShader = getShader(gl, "shader-fs");
   var vertexShader = getShader(gl, "shader-vs");
+  var fragmentShader = getShader(gl, "shader-fs");
   program = gl.createProgram();
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
@@ -376,7 +374,7 @@ function initShaders() {
     <hgroup>
       <h2>Setting up Geometry</h2>
     </hgroup>
-    <article class="smaller">
+    <article>
       <pre class="prettyprint" data-lang="javascript">
 var buffer;
 function initGeometry() {
@@ -384,18 +382,12 @@ function initGeometry() {
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   // Interleave vertex positions and colors
   var vertexData = [
-    // Vertex 1 position
-    0.0,  0.8,  0.0,
-    // Vertex 1 Color
-    1.0, 0.0, 0.0, 1.0,
-    // Vertex 2 position
-    -0.8, -0.8,  0.0,
-    // Vertex 2 color
-    0.0, 1.0, 0.0, 1.0,
-    // Vertex 3 position
-    0.8, -0.8,  0.0,
-    // Vertex 3 color
-    0.0, 0.0, 1.0, 1.0
+    // X    Y     Z         R     G     B     A
+    0.0,   0.8,  0.0,      1.0,  0.0,  0.0,  1.0,
+    // X    Y     Z         R     G     B     A
+    -0.8, -0.8,  0.0,      0.0,  1.0,  0.0,  1.0,
+    // X    Y     Z         R     G     B     A
+    0.8,  -0.8,  0.0,      0.0,  0.0,  1.0,  1.0
   ];
   gl.bufferData(gl.ARRAY_BUFFER,
     new Float32Array(vertexData), gl.STATIC_DRAW);
@@ -467,6 +459,13 @@ function drawScene() {
     </article>
   </slide>
 
+  <slide class="segue dark nobackground">
+    <aside class="sglogobar"><img src="images/siggraph2012-logo-with-alpha.png"></aside>
+    <hgroup class="auto-fadein">
+      <h2>Break</h2>
+    </hgroup>
+  </slide>
+
   <slide>
     <hgroup>
       <h2>Achieving High Performance</h2>
@@ -485,7 +484,7 @@ function drawScene() {
         </li>
         <li>In order to draw many triangles at ones, it's usually necessary to sort objects in the scene by rendering state
           <ul>
-            <li>For example, objects using the same texture should be drawn with consecutive draw calls
+            <li>For example, draw all objects using the same texture at once
           </ul>
         </li>
       </ul>
@@ -494,9 +493,10 @@ function drawScene() {
 
   <slide>
     <hgroup>
-      <h2>Achieving High Performance</h2>
+      <h2>State Sorting</h2>
     </hgroup>
     <article>
+      <img style="float: right;" src="images/relative-cost-of-operations.svg" width="450px" alt="Description" title="Description">
       <ul>
         <li>Objects should be sorted and drawn according to the following criteria, in decreasing order of importance:
           <ul>
@@ -517,10 +517,24 @@ function drawScene() {
             </li>
           </ul>
         </li>
-        <li>Sort scene ahead of time, maintain as a sorted list if possible
+      </ul>
+      <footer class="source">source: Ben Vanik, Google</footer>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>State Sorting</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>If possible, sort scene ahead of time, maintain as a sorted list
+        <li>Walking the object hierarchy and re-sorting each frame can cancel gains from batching
+        <li>Generate content (models, etc.) so that they can be easily batched
           <ul>
-            <li>Object hierarchy walks/sorts each frame can cancel gains from batching</li>
-            <li>Generate content (models/etc) such that they can be easily batched (merge buffers/textures/etc)</li>
+            <li>Merge buffers
+            <li>Use texture atlases
+            <li>...
           </ul>
         </li>
       </ul>
@@ -530,11 +544,48 @@ function drawScene() {
 
   <slide>
     <hgroup>
-      <h2>Achieving High Performance</h2>
+      <h2>Example Structure of Drawing a Frame</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="javascript">
+gl.enable(gl.DEPTH_TEST);
+gl.depthMask(true);
+gl.disable(gl.BLEND);
+// Draw opaque content
+gl.depthMask(false);
+gl.enable(gl.BLEND);
+// Draw translucent content
+gl.disable(gl.DEPTH_TEST);
+// Draw UI</pre>
+      <img class="centered" src="images/frame-structure.svg" height="175px" alt="Description" title="Description">
+      <footer class="source">source: Ben Vanik, Google</footer>
+    </article>
+  </slide>
+
+
+  <slide>
+    <hgroup>
+      <h2>JavaScript Performance</h2>
     </hgroup>
     <article>
       <ul>
-        <li>In WebGL, all of the OpenGL "big rules" apply, alone with another one:
+        <li>JavaScript performance has improved dramatically over the past several years
+        <li>In particular, for 3D graphics use cases
+        <li>Already possible to generate many vertices from JavaScript every frame and send them to the graphics card
+          <ul>
+            <li><a href="https://www.khronos.org/registry/webgl/sdk/demos/google/nvidia-vertex-buffer-object/index.html">NVIDIA vertex buffer object demo</a> generates and uploads ~10 million vertices per second
+          </ul>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>WebGL Performance</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Still, in WebGL, all of the OpenGL "big rules" apply, along with another one:
           <ul>
             <li>Offload as much JavaScript to the GPU as possible, within reason</li>
           </ul>
@@ -659,20 +710,8 @@ function drawScene() {
         <li>Animates roughly 2000 particles at 60 frames per second</li>
         <li>Does all animation math on the GPU</li>
       </ul>
-      <!-- FIXME: re-learn how to do this the "right way" -->
-      <center>
-        <img height="350px" src="images/particles.png" alt="Description" title="Description">
-      </center>
+      <img class="centered" height="350px" src="images/particles.png" alt="Description" title="Description">
       <footer class="source">source: Gregg Tavares, Google</footer>
-    </article>
-  </slide>
-
-  <slide>
-    <hgroup>
-      <h2>Particle Systems</h2>
-    </hgroup>
-    <article>
-      <iframe data-src="https://www.khronos.org/registry/webgl/sdk/demos/google/particles/index.html"></iframe>
     </article>
   </slide>
 
@@ -730,8 +769,7 @@ function drawScene() {
           </ul>
         <li>Compared various techniques for rendering animated sprites within a web browser
           <ul>
-            <li>HTML DIVs
-            <li>CSS transforms
+            <li>CSS-transformed Images
             <li>2D Canvas
             <li>WebGL
           </ul>
@@ -746,21 +784,21 @@ function drawScene() {
     </hgroup>
     <article>
       <ul>
-        <li>At the time JSGameBench was released, several inefficiencies identified in its WebGL backend
+        <li>At the time JSGameBench was released, several inefficiencies were identified in its WebGL backend
           <ul>
-            <li>One draw call per sprite
-            <li>Three uniform variables set per sprite, including position
-            <li>On average, a texture bind per sprite
+            <li>Did one draw call per sprite
+            <li>Set three uniform variables per sprite, including position
+            <li>On average, bound one texture per sprite
           </ul>
-        <li>Seemed that drawing the entire sprite field with one draw call would be an obvious performance win
-        <li>Built prototype sprite engine to test this hypothesis
+        <li>Seemed that drawing the entire sprite field with one draw call would be a big performance win
+        <li>Built <a href="http://webglsamples.googlecode.com/hg/sprites/index.html">prototype sprite engine</a> to test this hypothesis
       </ul>
     </article>
   </slide>
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Alpha Blending and Draw Order</h2>
     </hgroup>
     <article>
       <ul>
@@ -770,16 +808,29 @@ function drawScene() {
             <li>Apparently GPUs contain quite a bit of silicon in the Render Output Unit (ROP) to provide this guarantee
             <li>Thanks to Nat Duca of Google for this information
           </ul>
-        <li>Only major remaining problem is avoiding the per-sprite texture bind
-        <li>Basic idea is to send all sprite sheets for the entire sprite field to the fragment shader, and have it choose which one to display for any given sprite
-        <li>More on this later
       </ul>
     </article>
   </slide>
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Batching Sprites</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Only major remaining problem is avoiding the per-sprite texture bind
+        <li>Basic idea is to send all sprite sheets for the entire sprite field to the fragment shader, and have it choose which one to display for any given sprite
+        <li>Slight generalization of texture atlasing
+        <li>More on this later
+      </ul>
+      <img class="centered" src="images/sprite-sheets.png" height="350px" alt="Description" title="Description">
+      <footer class="source">Sprites Copyright 2011<br>Facebook</footer>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Sprite Animation</h2>
     </hgroup>
     <article>
       <ul>
@@ -796,34 +847,32 @@ function drawScene() {
     </article>
   </slide>
 
+<!-- Seems like too much detail -->
+<!--
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Per-Sprite Constant Information</h2>
     </hgroup>
-    <article class="smaller">
+    <article>
       <ul>
         <li>Constant information is transmitted to vertex shader in several vertex attributes:
           <ul>
             <li>Rotation
             <li>Per-sprite frame offset; allows each sprite instance to start its animation at a different time
             <li>Sprite size in pixels (assumes square sprites; could easily be generalized)
-            <li>Offset of the current vertex's corner from the center of the sprite, in normalized coordinates for the sprite
-              <ul>
-                <li>(-0.5, -0.5) => Upper left corner
-                <li>( 0.5, 0.5) => Lower right corner
-              </ul>
-            <li>The 2D size of each sprite image within its sprite sheet, specified in normalized coordinates (0.0...1.0)
             <li>The number of sprites per row in the sprite sheet
             <li>The total number of frames in the sprite's animation
-            <li>A vector of coefficients used to select the texture to display, currently represented as a vec4 where one component will be 1.0 and the rest will be 0.0
+            <li>A vector of coefficients used to select the sprite sheet to use; one component is 1.0, all others 0.0
+            <li>...
           </ul>
       </ul>
     </article>
   </slide>
+-->
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Sprite Transformation and Animation</h2>
     </hgroup>
     <article>
       <ul>
@@ -831,34 +880,22 @@ function drawScene() {
         <li>Technically possible to do this work in the vertex shader as well
         <li>Doing it on the CPU more closely matches the structure of the JSGameBench code
         <li>Also makes it simpler to handle wrapping at the edges of the screen
-      </ul>
-    </article>
-  </slide>
-
-  <slide>
-    <hgroup>
-      <h2>Sprite Engines</h2>
-    </hgroup>
-    <article>
-      <ul>
         <li>"Global" frame offset is computed on the CPU each frame and sent to the shader program in a uniform variable
-        <li>Vertex shader does simple modulo arithmetic with this frame offset plus the per-sprite frame offset to choose the right frame of the sprite's animation
-        <li>Uses corner offset to compute the texture coordinates of that image within the sprite sheet
-        <li>Corner offset is also used to compute the overall position and rotation of the sprite
+        <li>Vertex shader does simple arithmetic to choose the frame of the current sprite's animation
       </ul>
     </article>
   </slide>
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Choosing a Sprite Sheet</h2>
     </hgroup>
     <article>
       <ul>
         <li>Fragment shader is extremely simple; it just samples the sprite sheet at the given texture coordinates
         <li>Remember that in order to batch all the sprites into a single draw call, we actually have to feed in multiple sprite sheets (textures)
           <ul>
-            <li>Some of the sprites' animations are so large that they take up an entire texture
+            <li>Some of the sprites' animations are so large that they take up an entire 2048x2048 texture
           </ul>
         <li>How to choose which sprite sheet to sample?
       </ul>
@@ -867,7 +904,7 @@ function drawScene() {
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Fragment Shader Indexing Expressions</h2>
     </hgroup>
     <article>
       <ul>
@@ -884,7 +921,7 @@ function drawScene() {
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>First Fragment Shader Attempt</h2>
     </hgroup>
     <article>
       <ul>
@@ -908,7 +945,7 @@ gl_FragColor =
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Diagnosing Texture Bandwidth Saturation</h2>
     </hgroup>
     <article>
       <ul>
@@ -926,7 +963,7 @@ gl_FragColor =
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Alternative Formulation</h2>
     </hgroup>
     <article>
       <ul>
@@ -940,12 +977,9 @@ gl_FragColor =
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Revised Fragment Shader</h2>
     </hgroup>
     <article>
-      <ul>
-        <li>Revised fragment shader:
-      </ul>
       <pre class="prettyprint lang-glsl" data-lang="glsl">
   vec4 color;
   if (v_textureWeights.x > 0.0)
@@ -957,16 +991,19 @@ gl_FragColor =
   else // v_textureWeights.w > 0.0
     color = texture2D(u_texture3, v_texCoord);
   gl_FragColor = color;</pre>
+      <ul>
+        <li>Compare performance <a href="http://webglsamples.googlecode.com/hg/sprites/index.html?slow=true">before</a> and <a href="http://webglsamples.googlecode.com/hg/sprites/index.html">after</a>
+      </ul>
     </article>
   </slide>
 
   <slide>
     <hgroup>
-      <h2>Sprite Engines</h2>
+      <h2>Measurements</h2>
     </hgroup>
     <article>
       <ul>
-        <li>Measurements on laptop where prototype was developed indicate that it can draw 250% or more sprites at 30 FPS than JSGameBench's WebGL backend at the time
+        <li>Measurements on laptop where prototype was developed indicate that it could draw 250% or more sprites at 30 FPS than JSGameBench's WebGL backend at the time
         <li>JSGameBench subsequently added batching to their WebGL backend
         <li>Full source code for <a href="http://webglsamples.googlecode.com/hg/sprites/index.html">prototype</a> is available in <a href="http://webglsamples.googlecode.com/">webglsamples project</a> under <code>sprites/</code>; see also <a href="http://webglsamples.googlecode.com/hg/sprites/readme.html">documentation</a>
       </ul>
@@ -982,7 +1019,7 @@ gl_FragColor =
         <li>WebGL supports floating-point textures as an extension
         <li>Every texel can store one or more floating-point values
         <li>Because GPU can operate on so much floating-point data at once, it is possible to perform advanced techniques in WebGL such as physical simulation
-        <li>Any iterative computation where each step relies only on nearby neighbors is a good candidate for moving to the GPU.
+        <li>Any iterative computation where each step relies only on nearby neighbors is a good candidate for moving to the GPU
       </ul>
     </article>
   </slide>
@@ -994,7 +1031,7 @@ gl_FragColor =
     <article>
       <ul>
         <li>Evgeny Demidov has developed several <a href="http://www.ibiblio.org/e-notes/webgl/gpu/contents.htm">demonstrations</a> showing how to simulate waves, interference patterns, 2D fluid dynamics and other techniques in WebGL
-        <li>Evan Wallace has developed <a href="http://madebyevan.com/">demonstrations</a> utilizing floating-point textures to simulate <a href="http://madebyevan.com/webgl-water/">interactive water in a pool</a> and even do <a href="http://madebyevan.com/webgl-path-tracing/">ray tracing</a> in WebGL
+        <li>Evan Wallace has developed <a href="http://madebyevan.com/">demonstrations</a> utilizing floating-point textures to simulate <a href="http://madebyevan.com/webgl-water/">interactive water in a pool</a> and even do <a href="http://madebyevan.com/webgl-path-tracing/">path tracing</a> in WebGL
         <li>Ricardo Cabello (mr.doob of Three.js) has developed a beautiful new <a href="http://mrdoob.com/144/Magic_dust">stateful particle simulation</a> using floating-point textures to represent the particles' states
       </ul>
     </article>

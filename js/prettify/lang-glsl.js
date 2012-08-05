@@ -16,9 +16,8 @@ PR['registerLangHandler'](
          [PR['PR_PLAIN'], /^[\t\n\r \xA0]+/, null, '\t\n\r \xA0']
         ],
         [
-         // C++-style comments (FIXME: don't appear to be working)
+         // C++-style comments
          [PR['PR_COMMENT'],     /^(?:\/\/[^\r\n]*|\/\*[\s\S]*?\*\/)/],
-         [PR['PR_PLAIN'],       /^(?:[^\/\"\'`]|\/(?![\/\*]))+/i],
          // String, character or bit string
          [PR['PR_STRING'], /^(?:[BOX]?"(?:[^\"]|"")*"|'.')/i],
          [PR['PR_KEYWORD'], /^(?:attribute|break|const|continue|discard|do|else|for|gl_FragColor|gl_FragData|gl_Position|highp|if|in|inout|invariant|lowp|mediump|out|precision|return|struct|uniform|varying|while)(?=[^\w-]|$)/i, null],
