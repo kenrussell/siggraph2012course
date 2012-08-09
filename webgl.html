@@ -52,30 +52,48 @@ URL: https://github.com/kenrussell/siggraph2012course
     </hgroup>
     <article>
       <ul>
-        <li>WebGL brings 3D graphics to the HTML5 platform</li>
+        <li>WebGL brings 3D graphics to the HTML5 platform
+          <ul>
+            <li>Plugin free: never lose a user because they are afraid to download and install something from the web</li>
+            <li>Based on OpenGL ES 2.0: same for destops, laptops, mobile devices, etc</li>
+            <li>Secure: tighten up all the loose ends in GL</li>
+          </ul>
+        </li>
         <li>WebGL is an alternative rendering context for the HTML5 Canvas element</li>
-        <li>Provides the OpenGL ES 2.0 API to JavaScript</li>
+        <li>WebGL -> Javascript + Shaders
+          <ul>
+            <li>Shaders - small programs that executes on GPU - determine position of each triangle and color of each pixel </li>
+          </ul>
+        </li>
       </ul>
+      <img style="position:absolute; bottom:50px; left:200px;" src="images/desktop.png" height="200px" alt="Desktop" title="Desktop">
+      <img style="position:absolute; bottom:70px; left:450px;" src="images/laptop.png" height="150px" alt="Laptop" title="Laptop">
+      <img style="position:absolute; bottom:70px; left:650px;" src="images/smartphone.png" height="150px" alt="Smartphone" title="Smartphone">
     </article>
   </slide>
 
   <slide>
     <hgroup>
-      <h2>Introduction</h2>
+      <h2>Security</h2>
     </hgroup>
     <article>
       <ul>
-        <li>OpenGL and OpenGL ES provide a proven rendering model</li>
-        <ul>
-          <li>Differs from other graphics APIs on the web</li>
-        </ul>
-        <li>The triangle is the basic drawing primitive</li>
-        <li>Data for many triangles is prepared once, but drawn many times</li>
-        <ul>
-          <li>Vertex positions, colors, textures, ...</li>
-        </ul>
-        <li><b>Shaders</b> &mdash; small programs that execute directly on the GPU &mdash; determine position of each triangle and color of every pixel</li>
+        <li>Validate all input parameters/data in WebGL
+          <ul>
+            <li>Never leak a driver functionality that's not supported in the WebGL spec</li>
+            <li>Out-of-bounds data access detection</li>
+          </ul>
+        </li>
+        <li>Deal with driver bugs
+          <ul>
+            <li>Browsers actively maintain a blacklist</li>
+            <li>Work with driver vendors to fix bugs</li>
+            <li>Comprehensive conformance test suite</li>
+          </ul>
+        </li>
+        <li>Protection against malicious shaders</li>
       </ul>
+      <img style="position:absolute; bottom:100px; right:50px;" src="images/protection.jpg" height="250px" alt="Protection" title="Protection">
     </article>
   </slide>
 
@@ -84,26 +102,17 @@ URL: https://github.com/kenrussell/siggraph2012course
       <h2>Programming Model</h2>
     </hgroup>
     <article>
+      <p align="center"><img src="images/stream-processing-with-shaders.svg" height="200px" alt="Shader pipeline" title="Shader pipeline"></p>
       <ul>
         <li>The GPU is a stream processor</li>
-        <li>Each point in 3D space has one or more streams of data associated with it</li>
-        <ul>
-          <li>Position, surface normal, color, texture coordinate, ...</li>
-        </ul>
-        <li>In OpenGL (and WebGL) these streams are called vertex attributes</li>
+        <li>Vertex attributes: each point in 3D space has one or more streams of data associated with it
+          <ul>
+            <li>Position, surface normal, color, texture coordinate, ...</li>
+          </ul>
+        </li>
         <li>These streams of data flow through the vertex and fragment shaders</li>
         <li>Shaders are small, stateless programs which run on the GPU with a high degree of parallelism</li>
       </ul>
-    </article>
-  </slide>
-
-  <slide>
-    <hgroup>
-      <h2>Shader Pipeline</h2>
-    </hgroup>
-    <article>
-      <img style="position:absolute; top: 115px; left:50px;" src="images/stream-processing-with-shaders.svg" height="300px" alt="Description" title="Description">
-      <img style="position:absolute; right:50px; bottom:50px;" src="images/vertex-and-fragment-shader-diagram.svg" height="300px" alt="Description" title="Description">
     </article>
   </slide>
 
@@ -117,7 +126,23 @@ URL: https://github.com/kenrussell/siggraph2012course
         <li>Its primary goal is to output the location where the vertex should appear in the on-screen window</li>
         <li>May also output one or more additional values &mdash; <b>varying variables</b> &mdash; to the fragment shader</li>
       </ul>
-      <img style="position:absolute; right:50px; bottom:50px;" src="images/vertex-and-fragment-shader-diagram.svg" height="300px" alt="Description" title="Description">
+      <img style="position:absolute; right:20px; bottom:50px;" src="images/vertex-and-fragment-shader-diagram.svg" height="180px" alt="Description" title="Description">
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Vertex Shader -> Fragment Shader</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>The outputs of vertex shader is the inputs of fragment shader, but not directly</li>
+        <li>For each triangle, the GPU figures out which pixels on the screen are covered by the triangle</li>
+        <li>At each pixel, GPU automatically blends outputs of the vertex shader based on where the pixel lies within the triangle</li>
+      </ul>
+      <img style="position:absolute; left:50px; bottom:180px;" src="images/stream-processing-with-shaders.svg" height="200px" alt="Shader pipeline" title="Shader pipeline">
+      <img style="position:absolute; left:330px; bottom:220px;" src="images/red_arrow.png" height="75px" alt="Arrow" title="Arrow">
+      <img style="position:absolute; right:20px; bottom:50px;" src="images/vertex-and-fragment-shader-diagram.svg" height="180px" alt="Description" title="Description">
     </article>
   </slide>
 
@@ -127,12 +152,10 @@ URL: https://github.com/kenrussell/siggraph2012course
     </hgroup>
     <article>
       <ul>
-        <li>For each triangle, the GPU figures out which pixels on the screen are covered by the triangle</li>
         <li>GPU then runs the fragment shader on each of those pixels</li>
-        <li>At each pixel, GPU automatically blends outputs of the vertex shader based on where the pixel lies within the triangle</li>
         <li>Fragment shader then determines the color of the pixel based on those inputs</li>
       </ul>
-      <img style="position:absolute; right:50px; bottom:50px;" src="images/vertex-and-fragment-shader-diagram.svg" height="300px" alt="Description" title="Description">
+      <img style="position:absolute; right:20px; bottom:50px;" src="images/vertex-and-fragment-shader-diagram.svg" height="180px" alt="Description" title="Description">
     </article>
   </slide>
 
@@ -145,15 +168,7 @@ URL: https://github.com/kenrussell/siggraph2012course
         <li>Vertex data is uploaded in to one or more buffer objects</li>
         <li>The vertex attributes in the vertex shader are bound to the data in these buffer objects</li>
       </ul>
-    </article>
-  </slide>
-
-  <slide>
-    <hgroup>
-      <h2>Buffer Objects and Vertex Shaders</h2>
-    </hgroup>
-    <article class="flexbox vcenter">
-      <img src="images/buffer-objects-and-vertex-shaders.svg" height="450px" alt="Description" title="Description">
+      <p align="center"><img src="images/buffer-objects-and-vertex-shaders.svg" height="360px" alt="Description" title="Description"></p>
     </article>
   </slide>
 
@@ -168,6 +183,7 @@ URL: https://github.com/kenrussell/siggraph2012course
         <li>May be <a href="http://webglsamples.googlecode.com/hg/hello-webgl/hello-webgl.html">viewed directly</a> in a WebGL-enabled browser
         <li>Goal of this example is to de-mystify WebGL by showing all of the steps necessary to draw a colored triangle on the screen</li>
       </ul>
+      <img style="position:absolute; right:50px; bottom:100px;" src="images/cake.jpg" height="200px" alt="Description" title="Description">
     </article>
   </slide>
 
@@ -176,7 +192,33 @@ URL: https://github.com/kenrussell/siggraph2012course
       <h2>A Concrete Example</h2>
     </hgroup>
     <article>
-      <iframe data-src="http://webglsamples.googlecode.com/hg/hello-webgl/hello-webgl.html"></iframe>
+      <iframe data-src="hello-webgl.html"></iframe>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>The Big Picture</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="html">
+&lt;html&gt;&lt;head&gt;
+&lt;title&gt;Hello, WebGL (adopted from Learning WebGL lesson 2)&lt;/title&gt;
+&lt;script id="shader-fs" type="x-shader/x-fragment"&gt;
+    ... // Vertex shader source code
+&lt;/script&gt;
+&lt;script id="shader-vs" type="x-shader/x-vertex"&gt;
+    ... // Fragment shader source code
+&lt;/script&gt;
+&lt;script type="text/javascript"&gt;
+    ... // WebGL source code 
+&lt;/script&gt;
+&lt;/head&gt;
+&lt;body onload="webGLStart();"&gt;
+    &lt;canvas id="lesson02-canvas" style="border: none;" width="400" height="400"&gt;&lt;/canvas&gt; 
+&lt;/body&gt;
+&lt;/html&gt;
+      </pre>
     </article>
   </slide>
 
@@ -432,6 +474,146 @@ function drawScene() {
 
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 }</pre>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Using Tetxures</h2>
+    </hgroup>
+    <article>
+      <iframe data-src="hello-webgl-texture.html"></iframe>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Shaders Using a Texture</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint lang-glsl" data-lang="vertex shader">
+attribute vec3 positionAttr;
+attribute vec2 texCoordAttr;
+varying vec2 texCoord;
+void main(void) {
+  gl_Position = vec4(positionAttr, 1.0);
+  texCoord = texCoordAttr;
+}
+      </pre>
+      <pre class="prettyprint lang-glsl" data-lang="fragment shader">
+precision mediump float;
+uniform sampler2D tex;
+varying vec2 texCoord;
+void main(void) {
+    gl_FragColor = texture2D(tex, texCoord);
+}
+      </pre>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Setting up Geometry with TexCoords</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="javascript">
+var buffer;
+function initGeometry() {
+  buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  // Interleave vertex positions and colors
+  var vertexData = [
+    // X    Y     Z         U     V
+    0.0,   0.8,  0.0,      0.5,  1.0,
+    // X    Y     Z         U     V
+    -0.8, -0.8,  0.0,      0.0,  0.0,
+    // X    Y     Z         U     V
+    0.8,  -0.8,  0.0,      1.0,  0.0,
+  ];
+  gl.bufferData(gl.ARRAY_BUFFER,
+    new Float32Array(vertexData), gl.STATIC_DRAW);
+}</pre>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Setting up Texture</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Create a texture object, and set up parameters</li>
+        <li>Download an image from web and wait</li>
+        <li>When an image is loaded, upload the image data to the texture</li>
+        <li>Draw with the texture</li>
+      </ul>   
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Setting up Texture</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="javascript">
+function loadTexture(src) {
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    var image = new Image();
+    image.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        drawScene();
+    };
+    image.src = src; // Start downloading the image by setting its source.
+    return texture;
+}
+      </pre>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Draw with a Texture</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="javascript">
+function drawScene() {
+    ... // Same as hello-webgl example
+
+    // Bind the texture to texture unit 0
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    // Point the uniform sampler to texture unit 0
+    var textureLoc = gl.getUniformLocation(program, "tex");
+    gl.uniform1i(textureLoc, 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
+      </pre>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>What Else?</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>WebGL specific: handling context lost and recovery</li>
+        <li>Regular graphics stuff:
+          <ul>
+            <li>Matrix: projection, transformation, ...</li>
+            <li>Lighting</li>
+            <li>Animation</li>
+            ...
+          </ul>
+        </li>
+      </ul>
+      <p align="center"><img src="images/aquarium.png" height="250px" alt="Aquarium" title="Aquarium"></p>
     </article>
   </slide>
 
