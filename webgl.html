@@ -55,20 +55,17 @@ URL: https://github.com/kenrussell/siggraph2012course
         <li>WebGL brings 3D graphics to the HTML5 platform
           <ul>
             <li>Plugin free: never lose a user because they are afraid to download and install something from the web</li>
-            <li>Based on OpenGL ES 2.0: same for destops, laptops, mobile devices, etc</li>
-            <li>Secure: tighten up all the loose ends in GL</li>
+            <li>Based on OpenGL ES 2.0: same for desktops, laptops, mobile devices, etc</li>
+            <li>Secure: ensure no out of bounds or uninitialized memory accesses</li>
           </ul>
         </li>
         <li>WebGL is an alternative rendering context for the HTML5 Canvas element</li>
-        <li>WebGL -> Javascript + Shaders
+        <li>WebGL = Javascript + Shaders
           <ul>
-            <li>Shaders - small programs that executes on GPU - determine position of each triangle and color of each pixel </li>
+            <li>Shaders - small programs that execute on the GPU - determine position of each triangle and color of each pixel </li>
           </ul>
         </li>
       </ul>
-      <img style="position:absolute; bottom:50px; left:200px;" src="images/desktop.png" height="200px" alt="Desktop" title="Desktop">
-      <img style="position:absolute; bottom:70px; left:450px;" src="images/laptop.png" height="150px" alt="Laptop" title="Laptop">
-      <img style="position:absolute; bottom:70px; left:650px;" src="images/smartphone.png" height="150px" alt="Smartphone" title="Smartphone">
     </article>
   </slide>
 
@@ -80,20 +77,21 @@ URL: https://github.com/kenrussell/siggraph2012course
       <ul>
         <li>Validate all input parameters/data in WebGL
           <ul>
-            <li>Never leak a driver functionality that's not supported in the WebGL spec</li>
+            <li>Never leak driver functionality that's not supported in the WebGL spec</li>
             <li>Out-of-bounds data access detection</li>
+            <li>Initialize all allocated objects</li>
           </ul>
         </li>
         <li>Deal with driver bugs
           <ul>
+            <li>Work around where possible</li>
             <li>Browsers actively maintain a blacklist</li>
             <li>Work with driver vendors to fix bugs</li>
             <li>Comprehensive conformance test suite</li>
           </ul>
         </li>
-        <li>Protection against malicious shaders</li>
+        <li>Terminate long-running content (accidental or malicious)</li>
       </ul>
-      <img style="position:absolute; bottom:100px; right:50px;" src="images/protection.jpg" height="250px" alt="Protection" title="Protection">
     </article>
   </slide>
 
@@ -136,7 +134,7 @@ URL: https://github.com/kenrussell/siggraph2012course
     </hgroup>
     <article>
       <ul>
-        <li>The outputs of vertex shader is the inputs of fragment shader, but not directly</li>
+        <li>The outputs of vertex shader are the inputs of fragment shader, but not directly</li>
         <li>For each triangle, the GPU figures out which pixels on the screen are covered by the triangle</li>
         <li>At each pixel, GPU automatically blends outputs of the vertex shader based on where the pixel lies within the triangle</li>
       </ul>
@@ -183,7 +181,6 @@ URL: https://github.com/kenrussell/siggraph2012course
         <li>May be <a href="http://webglsamples.googlecode.com/hg/hello-webgl/hello-webgl.html">viewed directly</a> in a WebGL-enabled browser
         <li>Goal of this example is to de-mystify WebGL by showing all of the steps necessary to draw a colored triangle on the screen</li>
       </ul>
-      <img style="position:absolute; right:50px; bottom:100px;" src="images/cake.jpg" height="200px" alt="Description" title="Description">
     </article>
   </slide>
 
@@ -479,7 +476,7 @@ function drawScene() {
 
   <slide>
     <hgroup>
-      <h2>Using Tetxures</h2>
+      <h2>Using Textures</h2>
     </hgroup>
     <article>
       <iframe data-src="hello-webgl-texture.html"></iframe>
@@ -513,7 +510,7 @@ void main(void) {
 
   <slide>
     <hgroup>
-      <h2>Setting up Geometry with TexCoords</h2>
+      <h2>Setting up Geometry with Texture Coords</h2>
     </hgroup>
     <article>
       <pre class="prettyprint" data-lang="javascript">
@@ -521,7 +518,7 @@ var buffer;
 function initGeometry() {
   buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  // Interleave vertex positions and colors
+  // Interleave vertex positions and texture coordinates
   var vertexData = [
     // X    Y     Z         U     V
     0.0,   0.8,  0.0,      0.5,  1.0,
@@ -538,7 +535,7 @@ function initGeometry() {
 
   <slide>
     <hgroup>
-      <h2>Setting up Texture</h2>
+      <h2>Setting up a Texture</h2>
     </hgroup>
     <article>
       <ul>
@@ -552,7 +549,7 @@ function initGeometry() {
 
   <slide>
     <hgroup>
-      <h2>Setting up Texture</h2>
+      <h2>Setting up a Texture</h2>
     </hgroup>
     <article>
       <pre class="prettyprint" data-lang="javascript">
@@ -588,6 +585,8 @@ function drawScene() {
     // Bind the texture to texture unit 0
     gl.bindTexture(gl.TEXTURE_2D, texture);
     // Point the uniform sampler to texture unit 0
+    // NOTE: you should fetch this uniform location once and cache it
+    // Only written this way for simplicity
     var textureLoc = gl.getUniformLocation(program, "tex");
     gl.uniform1i(textureLoc, 0);
 
@@ -609,7 +608,8 @@ function drawScene() {
             <li>Matrix: projection, transformation, ...</li>
             <li>Lighting</li>
             <li>Animation</li>
-            ...
+            <li>Interaction</li>
+            <li>...</li>
           </ul>
         </li>
       </ul>
