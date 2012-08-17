@@ -48,6 +48,8 @@ pre {
 
 <h1><img src="images/io2012_logo.png"> HTML5 Slide Template</h1>
 
+<h2>NOTE: this repository is now obsolete. Please find the current slides at <a href="https://github.com/KhronosGroup/siggraph2012course">https://github.com/KhronosGroup/siggraph2012course</a>.</h2>
+
 ## Hacks
 
 The original slides come from <a
